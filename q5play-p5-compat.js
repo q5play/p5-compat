@@ -45,6 +45,7 @@ if (typeof globalThis.Q5 == 'undefined') {
 	// p5.js v2 compatibility layer
 	p5._q5playCompat = ($) => {
 		$ ??= p5.instance;
+		const c = $.canvas;
 
 		// q5play defaults
 		$.angleMode($.DEGREES);
@@ -66,7 +67,6 @@ if (typeof globalThis.Q5 == 'undefined') {
 		$.popStyles = $.pop;
 		$.loadAudio = $.loadSound;
 		$.MAXED = 'maxed';
-		$.SMOOTH = 'smooth';
 		$.PIXELATED = 'pixelated';
 
 		const imgRegex = /(jpe?g|png|gif|webp|avif|svg)/i,
@@ -108,19 +108,113 @@ if (typeof globalThis.Q5 == 'undefined') {
 			return Promise.all(promises);
 		};
 
+		document.head.insertAdjacentHTML(
+			'beforeend',
+			`<style>
+html, body {
+	margin: 0;
+	padding: 0;
+}
+.q5Canvas {
+	outline: none;
+	-webkit-touch-callout: none;
+	-webkit-text-size-adjust: none;
+	-webkit-user-select: none;
+	overscroll-behavior: none;
+}
+.q5-pixelated {
+	image-rendering: pixelated;
+	font-smooth: never;
+	-webkit-font-smoothing: none;
+}
+.q5-centered,
+.q5-maxed {
+  display: flex;
+	align-items: center;
+	justify-content: center;
+}
+main.q5-centered,
+main.q5-maxed {
+	height: 100vh;
+}
+main {
+	overscroll-behavior: none;
+}
+</style>`
+		);
+
+		$._adjustDisplay = (forced) => {
+			let s = c.style;
+			// if the canvas doesn't have a style,
+			// it may be a server side canvas, so return
+			if (!s) return;
+			if (c.displayMode == 'normal') {
+				// unless the canvas needs to be resized, return
+				if (!forced) return;
+				s.width = c.w * c.displayScale + 'px';
+				s.height = c.h * c.displayScale + 'px';
+			} else {
+				let parent = c.parentElement.getBoundingClientRect();
+				if (c.w / c.h > parent.width / parent.height) {
+					if (c.displayMode == 'centered') {
+						s.width = c.w * c.displayScale + 'px';
+						s.maxWidth = '100%';
+					} else s.width = '100%';
+					s.height = 'auto';
+					s.maxHeight = '';
+				} else {
+					s.width = 'auto';
+					s.maxWidth = '';
+					if (c.displayMode == 'centered') {
+						s.height = c.h * c.displayScale + 'px';
+						s.maxHeight = '100%';
+					} else s.height = '100%';
+				}
+			}
+		};
+
+		$.displayMode = (displayMode = 'normal', renderQuality = 'smooth', displayScale = 1) => {
+			if (typeof displayScale == 'string') {
+				displayScale = parseFloat(displayScale.slice(1));
+			}
+			if (displayMode == 'fullscreen') displayMode = 'maxed';
+			if (displayMode == 'center') displayMode = 'centered';
+
+			if (c.displayMode) {
+				c.parentElement.classList.remove('q5-' + c.displayMode);
+				c.classList.remove('q5-pixelated');
+			}
+
+			c.parentElement.classList.add('q5-' + displayMode);
+
+			if (renderQuality == 'pixelated') {
+				c.classList.add('q5-pixelated');
+				$.pixelDensity(1);
+				// $.defaultImageScale(1);
+				if ($.noSmooth) $.noSmooth();
+				if ($.textFont) $.textFont('monospace');
+			}
+
+			Object.assign(c, { displayMode, renderQuality, displayScale });
+
+			if ($.ctx) $.pushStyles();
+			$._adjustDisplay(true);
+			if ($.ctx) $.popStyles();
+		};
+
 		if ($._c2d || $._webgpuFallback) {
 			$.opacity = (v) => ($.ctx.globalAlpha = v);
 		} else $.opacity = () => {};
 
 		// prettier-ignore
-		let nos = ['loadAll','displayMode','capsule','defaultImageScale','createTextImage','textImage','textToPoints','noiseMode','createRecorder','record','pauseRecording','deleteRecording', 'saveRecording'];
+		let nos = ['loadAll','capsule','defaultImageScale','createTextImage','textImage','textToPoints','noiseMode','createRecorder','record','pauseRecording','deleteRecording', 'saveRecording'];
 		for (let p of nos) {
 			$[p] = () => console.error(`p5.js v2 does not have ${p}.` + upgrade);
 		}
 
 		if ($._isGlobal) {
 			// prettier-ignore
-			let props = ['halfWidth','halfHeight','jit','disablePreload','findEl','findEls','inset','load','opacity','pushStyles','popStyles','loadAudio','MAXED','PIXELATED',...nos];
+			let props = ['halfWidth','halfHeight','jit','disablePreload','findEl','findEls','inset','load','displayMode','opacity','pushStyles','popStyles','loadAudio','MAXED','PIXELATED',...nos];
 			for (let p of props) {
 				window[p] = $[p];
 			}
