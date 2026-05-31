@@ -2,7 +2,7 @@
 
 Explore the q5play + p5 demo in the [p5.js Web Editor](https://editor.p5js.org/quinton-ashley/sketches/EfJ_atCs5) or [q5 Web Editor](https://codevre.com/q5-editor?project=bTC7gjpSpkTgfyD7VRiZdh3iJFw2_20260529131436736_htnr).
 
-Learn more:
+Learn more: <https://open.substack.com/pub/q5js/p/q5play-is-now-compatible-with-p5js>
 
 ## Demo
 
