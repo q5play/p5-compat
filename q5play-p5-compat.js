@@ -63,8 +63,8 @@ if (typeof globalThis.Q5 == 'undefined') {
 		$.inset = $.copy;
 		$._loaders = [];
 		$._colorFormat = 1;
-		$.pushStyles = $.push;
-		$.popStyles = $.pop;
+		$.pushMatrix = $.pushStyles = $.push;
+		$.popMatrix = $.popStyles = $.pop;
 		$.loadAudio = $.loadSound;
 		$.MAXED = 'maxed';
 		$.PIXELATED = 'pixelated';
@@ -214,7 +214,7 @@ main {
 
 		if ($._isGlobal) {
 			// prettier-ignore
-			let props = ['halfWidth','halfHeight','jit','disablePreload','findEl','findEls','inset','load','displayMode','opacity','pushStyles','popStyles','loadAudio','MAXED','PIXELATED',...nos];
+			let props = ['halfWidth','halfHeight','jit','disablePreload','findEl','findEls','inset','load','displayMode','opacity','pushMatrix','popMatrix','pushStyles','popStyles','loadAudio','MAXED','PIXELATED',...nos];
 			for (let p of props) {
 				window[p] = $[p];
 			}
